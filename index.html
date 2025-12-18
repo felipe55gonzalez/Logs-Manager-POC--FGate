@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs Manager POC - FGate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+
+<body class="h-screen overflow-hidden flex select-none text-sm">
+
+    <div id="sidebar" class="sidebar w-72 flex flex-col shrink-0 z-20 relative border-r transition-all duration-300">
+        <div class="p-4 border-b flex items-center justify-between sidebar-header h-14">
+            <div class="flex items-center gap-3 overflow-hidden transition-all duration-300 logo-container">
+                <img src="/assets/imgs/logo.png" alt="Logo" class="w-8 h-8 object-contain">
+
+                <div class="sidebar-text whitespace-nowrap opacity-100 transition-opacity duration-200 overflow-hidden">
+                    <h1 class="font-bold tracking-tight text-base leading-none text-indigo-100">Logs Manager</h1>
+                    <span class="text-[10px] opacity-50 font-mono text-blue-300">POC by FGate</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()"
+                class="p-1 opacity-50 hover:opacity-100 rounded hover:bg-white/5 transition-colors"
+                title="Colapsar menú">
+                <i data-lucide="panel-left" width="16"></i>
+            </button>
+        </div>
+
+        <div class="p-4 space-y-3 sidebar-content overflow-hidden">
+            <div class="relative group">
+                <label
+                    class="sidebar-text text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1 block whitespace-nowrap">Filtro
+                    Global</label>
+                <input type="date" id="date-filter-input" class="input-box w-full rounded-lg py-2 pl-3 pr-3 text-xs"
+                    title="Filtrar por fecha">
+            </div>
+
+            <div class="relative group">
+                <label
+                    class="sidebar-text text-[10px] font-bold opacity-40 uppercase tracking-widest mb-1 block whitespace-nowrap">Buscar
+                    Archivo</label>
+                <i data-lucide="search" class="absolute left-3 top-8 opacity-40 sidebar-search-icon" width="14"></i>
+                <input type="text" id="search-input" placeholder="Nombre..."
+                    class="input-box w-full rounded-lg py-2 pl-9 pr-3 text-xs placeholder-transparent md:placeholder-opacity-50"
+                    title="Buscar archivo">
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-2 pb-4 no-scrollbar">
+            <div class="flex items-center justify-between mb-2 px-2 sidebar-text">
+                <h3 class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Archivos</h3>
+                <span id="file-count" class="text-[10px] opacity-40 font-mono">0</span>
+            </div>
+            <div id="file-list" class="space-y-1"></div>
+        </div>
+
+        <div class="p-4 border-t sidebar-footer flex flex-col gap-4">
+            <div class="flex justify-between items-center sidebar-text">
+                <span class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Temas</span>
+                <div class="flex gap-1 flex-wrap justify-end">
+                    <div class="theme-dot" style="background:#161b22; border:1px solid #1f6feb"
+                        onclick="setTheme('fgate')" title="FGate (Principal)"></div>
+
+                    <div class="theme-dot" style="background:#09090b" onclick="setTheme('obsidian')" title="Obsidian">
+                    </div>
+                    <div class="theme-dot" style="background:#030014; border:1px solid #7c3aed"
+                        onclick="setTheme('cyber')" title="Cyber"></div>
+                    <div class="theme-dot" style="background:#ffffff; border:1px solid #cbd5e1"
+                        onclick="setTheme('clear')" title="Clear"></div>
+                    <div class="theme-dot" style="background:#041416; border:1px solid #14b8a6"
+                        onclick="setTheme('bio')" title="Bio"></div>
+                    <div class="theme-dot" style="background:#241b2f; border:1px solid #ff9f1c"
+                        onclick="setTheme('sunset')" title="Sunset"></div>
+                    <div class="theme-dot" style="background:#2E3440; border:1px solid #88C0D0"
+                        onclick="setTheme('nord')" title="Nord"></div>
+                    <div class="theme-dot" style="background:#272822; border:1px solid #a6e22e"
+                        onclick="setTheme('monokai')" title="Monokai"></div>
+
+                    <button onclick="openThemeCreator()"
+                        class="theme-dot flex items-center justify-center bg-white/10 border border-dashed border-white/30 text-white/50 hover:text-white"
+                        title="Custom">
+                        <i data-lucide="plus" width="8"></i>
+                    </button>
+                </div>
+            </div>
+            <button onclick="toggleSettings()"
+                class="w-full py-2 rounded-lg border border-dashed flex items-center justify-center gap-2 text-xs opacity-60 hover:opacity-100 transition-all settings-btn"
+                title="Ayuda y Ajustes">
+                <i data-lucide="settings-2" width="12"></i>
+                <span class="sidebar-text">Ajustes / Ayuda</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="main-area flex-1 flex flex-col h-full relative overflow-hidden transition-colors z-10">
+        <div id="tabs-bar" class="flex items-center px-2 pt-2 gap-1 border-b shrink-0 overflow-x-auto no-scrollbar"
+            style="background-color: var(--bg-sidebar); border-color: var(--border-color);">
+            <button onclick="createNewTab()"
+                class="px-3 py-1.5 opacity-50 hover:opacity-100 hover:bg-white/5 rounded-t-lg transition-colors"
+                title="Nueva Pestaña">
+                <i data-lucide="plus" width="14"></i>
+            </button>
+        </div>
+
+        <div id="empty-state" class="flex flex-col items-center justify-center h-full opacity-30 select-none hidden">
+            <div class="relative mb-6">
+                <div class="absolute inset-0 bg-indigo-500 blur-3xl opacity-20 rounded-full"></div>
+                <i data-lucide="layout-grid" width="64" class="relative text-indigo-400"></i>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight">FGate Logs Manager</h2>
+            <p class="text-sm mt-2 max-w-xs text-center font-mono opacity-70">Selecciona un log del menú lateral para
+                comenzar a monitorear.</p>
+        </div>
+
+        <div id="logs-container" class="grid gap-4 p-4 h-full overflow-hidden hidden"></div>
+
+        <div id="settings-modal"
+            class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="modal-panel p-6 rounded-xl max-w-3xl w-full relative flex flex-col gap-6 shadow-2xl">
+                <button onclick="toggleSettings()" class="absolute top-4 right-4 opacity-50 hover:opacity-100"><i
+                        data-lucide="x" width="20"></i></button>
+
+                <div class="flex items-center gap-3 border-b border-white/10 pb-4">
+                    <div class="p-2 rounded bg-indigo-500/10 text-indigo-400"><i data-lucide="settings-2"></i></div>
+                    <div>
+                        <h2 class="text-lg font-bold">Ajustes y Ayuda</h2>
+                        <p class="text-xs opacity-60">FGate System Monitor - Versión POC</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="col-span-1 md:col-span-3">
+                        <label
+                            class="flex items-center justify-between text-xs font-bold uppercase tracking-wider opacity-70 mb-4">
+                            <span>Velocidad de Lectura</span>
+                            <span id="refresh-rate-display"
+                                class="font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">1000ms</span>
+                        </label>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs opacity-50">Rápido (500ms)</span>
+                            <input type="range" id="refresh-rate-slider" min="500" max="5000" step="100"
+                                class="flex-1 accent-indigo-500 cursor-pointer h-1.5 bg-white/10 rounded-lg appearance-none"
+                                oninput="updateRefreshRate(this.value)">
+                            <span class="text-xs opacity-50">Lento (5s)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-span-1 md:col-span-3 pt-4 border-t border-white/10">
+                        <h3 class="text-xs font-bold opacity-70 uppercase tracking-wider mb-4">Conectar Servidor de Logs
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="option-card p-4 rounded-lg border transition-colors">
+                                <div
+                                    class="flex items-center gap-2 mb-2 font-bold text-xs uppercase tracking-wider text-blue-400">
+                                    <i data-lucide="command" width="14"></i> PowerShell</div>
+                                <code
+                                    class="block bg-black/30 p-2 rounded text-[10px] font-mono opacity-80 mb-2 select-all">.\server.ps1</code>
+                            </div>
+                            <div class="option-card p-4 rounded-lg border transition-colors">
+                                <div
+                                    class="flex items-center gap-2 mb-2 font-bold text-xs uppercase tracking-wider text-emerald-400">
+                                    <i data-lucide="terminal" width="14"></i> Python</div>
+                                <code
+                                    class="block bg-black/30 p-2 rounded text-[10px] font-mono opacity-80 mb-2 select-all">python3 server.py</code>
+                            </div>
+                            <div class="option-card p-4 rounded-lg border transition-colors">
+                                <div
+                                    class="flex items-center gap-2 mb-2 font-bold text-xs uppercase tracking-wider text-amber-400">
+                                    <i data-lucide="code" width="14"></i> VS Code</div>
+                                <pre onclick="copyConfig(this)"
+                                    class="block bg-black/30 p-2 rounded text-[10px] font-mono opacity-80 cursor-pointer hover:bg-black/50 transition-colors">"liveServer.settings.ignoreFiles": ["**/*.log"]</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="custom-theme-modal" class="hidden absolute inset-0 bg-black/20 z-50 flex items-center justify-end p-6">
+            <div
+                class="modal-panel p-6 rounded-xl max-w-sm w-full relative flex flex-col gap-4 shadow-2xl border border-white/10 mr-4">
+                <div class="flex justify-between items-center pb-4 border-b border-white/10">
+                    <h2 class="text-lg font-bold">Crear Tema Personalizado</h2>
+                    <button onclick="closeThemeCreator()" class="opacity-50 hover:opacity-100"><i data-lucide="x"
+                            width="20"></i></button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div class="space-y-2">
+                        <label class="block font-bold opacity-70">Fondos</label>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Principal</span> <input
+                                type="color" id="cp-bg-body" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Sidebar</span> <input
+                                type="color" id="cp-bg-sidebar" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Paneles</span> <input
+                                type="color" id="cp-bg-panel" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Terminal</span> <input
+                                type="color" id="cp-bg-terminal" class="bg-transparent"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block font-bold opacity-70">Texto & Acento</label>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Texto Principal</span>
+                            <input type="color" id="cp-text-main" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Texto Tenue</span>
+                            <input type="color" id="cp-text-dim" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Acento</span> <input
+                                type="color" id="cp-accent" class="bg-transparent"></div>
+                        <div class="flex items-center justify-between"><span class="opacity-50">Bordes</span> <input
+                                type="color" id="cp-border" class="bg-transparent"></div>
+                    </div>
+                    <div class="col-span-2 space-y-2 pt-2 border-t border-white/10">
+                        <label class="block font-bold opacity-70">Sintaxis de Logs</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="flex items-center justify-between"><span class="opacity-50">Info</span> <input
+                                    type="color" id="cp-lvl-info" class="bg-transparent"></div>
+                            <div class="flex items-center justify-between"><span class="opacity-50">Warn</span> <input
+                                    type="color" id="cp-lvl-warn" class="bg-transparent"></div>
+                            <div class="flex items-center justify-between"><span class="opacity-50">Error</span> <input
+                                    type="color" id="cp-lvl-error" class="bg-transparent"></div>
+                            <div class="flex items-center justify-between"><span class="opacity-50">Timestamp</span>
+                                <input type="color" id="cp-log-ts" class="bg-transparent"></div>
+                            <div class="flex items-center justify-between"><span class="opacity-50">Métodos</span>
+                                <input type="color" id="cp-log-method" class="bg-transparent"></div>
+                            <div class="flex items-center justify-between"><span class="opacity-50">UUIDs</span> <input
+                                    type="color" id="cp-log-uuid" class="bg-transparent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-4">
+                    <button onclick="applyCustomTheme()" class="btn-primary w-full py-2 rounded font-bold">Guardar y
+                        Aplicar</button>
+                    <button onclick="closeThemeCreator()"
+                        class="w-1/3 py-2 rounded border border-white/10 hover:bg-white/5">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="/js/main.js"></script>
+</body>
+
+</html>

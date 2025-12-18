@@ -1,0 +1,7 @@
+/* agrega este archvio josn a tu carpeta /.vscode si utilizas
+la extencion de live server, para evitar la recarga automatica */
+{
+    "liveServer.settings.ignoreFiles": [
+        "**/*.log"
+    ]
+}
