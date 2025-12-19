@@ -77,9 +77,14 @@ Al ser una versión que corre puramente en el navegador sin un backend dedicado,
 
 **Ubicación de archivos:** Para que el navegador pueda leer los logs mediante *polling* y que se actualicen en tiempo real, los archivos `.log` deben estar en el mismo directorio que el `index.html`.
 
-En esta POC, tu servicio debe escribir sus logs en la misma carpeta del proyecto para que el monitor los detecte y actualice automáticamente mientras se generan nuevas líneas.
+**Solución:** Si integras este frontend con una API (REST o WebSockets), esta limitación desaparece.
 
-**Solución:** Si integras este frontend con una API (REST o WebSockets), esta limitación desaparece. El backend se encargaría de servir los archivos desde cualquier ruta del servidor, sin necesidad de que estén en la misma carpeta que el HTML.
+### Solución Alternativa (Modo Puente)
+
+Para superar esta limitación sin mover tus archivos de log, el proyecto incluye **Servidores Puente** en la carpeta `scripts mini servers/`. Estos scripts levantan un servidor local que tiene permisos de sistema para leer cualquier ruta absoluta y exponerla al frontend.
+
+> **Recomendación:** Si tus logs están dispersos en diferentes discos o carpetas del sistema, ve directo a la sección:
+> [👉 Configurar Modo Avanzado (Modo Puente)](#modo-avanzado-lectura-de-rutas-absolutas-modo-puente)
 
 ## Instalación y Uso
 
@@ -153,7 +158,61 @@ la extensión de Live Server para evitar la recarga automática */
 }
 
 ```
+## Modo Avanzado: Lectura de Rutas Absolutas (Modo Puente)
 
+Por seguridad, los navegadores no pueden leer archivos fuera de la carpeta del proyecto (como `C:\Windows\System32\...` o `/var/log/...`).
+Si necesitas monitorear logs en rutas absolutas sin moverlos de su lugar, utiliza los **Scripts Inyectores** ubicados en `scripts mini servers/`.
+Estos scripts funcionan como un "Puente" y realizan 3 acciones automáticas:
+
+1. **Validan** qué archivos existen realmente en tu disco.
+2. **Inyectan** la configuración temporalmente en `js/state.js`.
+3. **Inician** el servidor y abren el navegador.
+
+### Paso 1: Configurar Rutas
+
+Abre el script que prefieras (`.ps1` o `.py`) y edita la variable de mapeo al inicio del archivo:
+
+**En PowerShell (`server_js_injector.ps1`):**
+
+```powershell
+$LogMapping = @{
+    "IIS_Log"   = "C:\inetpub\logs\LogFiles\W3SVC1\u_ex231201.log"
+    "MiApp"     = "D:\Proyectos\Backend\logs\error.log"
+}
+
+```
+
+**En Python (`server_js_injector_python.py`):**
+
+```python
+LOG_MAPPING = {
+    "Syslog": "/var/log/syslog",
+    "App_Win": r"C:\Users\MiUsuario\Documents\app.log"
+}
+
+```
+
+### Paso 2: Ejecutar
+
+Desde la terminal, en la raíz del proyecto:
+
+#### Opción PowerShell (Windows)
+
+```powershell
+# Iniciar servidor y abrir navegador automáticamente
+.\scripts mini servers\server_js_injector.ps1 -Open
+
+```
+
+#### Opción Python (Windows / Linux / Mac)
+
+```bash
+# Iniciar servidor y abrir navegador automáticamente
+python "scripts mini servers/server_js_injector_python.py" --open
+
+```
+
+> **Nota:** Al detener el servidor (Ctrl+C), el script **restaurará automáticamente** el archivo `js/state.js` a su estado original, dejando tu proyecto limpio.
 ## Configuración
 
 Para definir qué archivos cargan automáticamente al abrir la app, edita la lista `AUTO_LOAD_FILES` en `js/state.js`:
