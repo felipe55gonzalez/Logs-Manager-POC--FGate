@@ -20,6 +20,7 @@
 - [Instalación](#instalación-y-uso)
 - [Configuración](#configuración)
 - [Extensibilidad](#extensibilidad-y-personalización)
+- [Modo Avanzado](#modo-avanzado-lectura-de-rutas-absolutas-modo-puente)
 - [Contribución](#contribución)
 
 ## Pruébalo Ahora
@@ -84,7 +85,7 @@ Al ser una versión que corre puramente en el navegador sin un backend dedicado,
 Para superar esta limitación sin mover tus archivos de log, el proyecto incluye **Servidores Puente** en la carpeta `scripts mini servers/`. Estos scripts levantan un servidor local que tiene permisos de sistema para leer cualquier ruta absoluta y exponerla al frontend.
 
 > **Recomendación:** Si tus logs están dispersos en diferentes discos o carpetas del sistema, ve directo a la sección:
-> [👉 Configurar Modo Avanzado (Modo Puente)](#modo-avanzado-lectura-de-rutas-absolutas-modo-puente)
+> [👉 Configuración Alternativa (Modo Puente)](#modo-avanzado-lectura-de-rutas-absolutas-modo-puente)
 
 ## Instalación y Uso
 
@@ -158,16 +159,6 @@ la extensión de Live Server para evitar la recarga automática */
 }
 
 ```
-## Modo Avanzado: Lectura de Rutas Absolutas (Modo Puente)
-
-Por seguridad, los navegadores no pueden leer archivos fuera de la carpeta del proyecto (como `C:\Windows\System32\...` o `/var/log/...`).
-Si necesitas monitorear logs en rutas absolutas sin moverlos de su lugar, utiliza los **Scripts Inyectores** ubicados en `scripts mini servers/`.
-Estos scripts funcionan como un "Puente" y realizan 3 acciones automáticas:
-
-1. **Validan** qué archivos existen realmente en tu disco.
-2. **Inyectan** la configuración temporalmente en `js/state.js`.
-3. **Inician** el servidor y abren el navegador.
-
 ### Paso 1: Configurar Rutas
 
 Abre el script que prefieras (`.ps1` o `.py`) y edita la variable de mapeo al inicio del archivo:
@@ -226,6 +217,7 @@ export var AUTO_LOAD_FILES = [
 ];
 
 ```
+> [👉 Configuración Alternativa: Modo Puente para logs en múltiples rutas](#modo-avanzado-lectura-de-rutas-absolutas-modo-puente)
 
 ## Extensibilidad y Personalización
 
@@ -283,6 +275,16 @@ Para agregar nuevas reglas:
 3. Define los colores correspondientes en `assets/style.css` usando las variables CSS existentes (se ajustan limpiamente sin tocar JS).
 
 > **Para después:** Sé que editar código para cambiar un color no es lo ideal. Tal vez después podría construir una interfaz visual (UI) integrada, para que puedas crear y guardar tus propias reglas de resaltado directamente desde el navegador sin tocar la lógica de los scripts.
+
+## Modo Avanzado: Lectura de Rutas Absolutas (Modo Puente)
+
+Por seguridad, los navegadores no pueden leer archivos fuera de la carpeta del proyecto (como `C:\Windows\System32\...` o `/var/log/...`).
+Si necesitas monitorear logs en rutas absolutas sin moverlos de su lugar, utiliza los **Scripts Inyectores** ubicados en `scripts mini servers/`.
+Estos scripts funcionan como un "Puente" y realizan 3 acciones automáticas:
+
+1. **Validan** qué archivos existen realmente en tu disco.
+2. **Inyectan** la configuración temporalmente en `js/state.js`.
+3. **Inician** el servidor y abren el navegador.
 
 ## Contribución
 
